@@ -12,7 +12,7 @@ Point.prototype.draw = function() {
 
 function writeMessage(canvas, message) {
     var context = canvas.getContext('2d');
-    // context.clearRect(0, 0, canvas.width, canvas.height);
+    // context.clearRect(0, 0, canvas.width,   canvas.height);
     context.font = '18pt Helvetica Neue';
     context.fillStyle = 'black';
     context.fillText(message, 10, 25);
