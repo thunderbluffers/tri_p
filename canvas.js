@@ -40,7 +40,7 @@ Polygon.prototype.draw = function () {
     }
     this.ctx.stroke();
 
-    if (this.state == POLYGON_DRAWING && this.points.length > 1) {
+    if (this.state == POLYGON_DRAWING && this.points.length >= 3) {
         var lastPoint = this.points[this.points.length - 1];
         this.ctx.setLineDash([5]);
         this.ctx.beginPath();
