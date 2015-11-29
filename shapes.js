@@ -120,7 +120,10 @@ Polygon.prototype.draw = function () {
 
     // Draw triangles if the case
     if (this.state == POLYGON_FINISHED) {
-        this.ctx.strokeStyle = "blue";
+        this.ctx.save();
+        this.ctx.strokeStyle = "black";
+        this.ctx.lineWidth = 2;
+        this.ctx.setLineDash([]);
 
         for (var i = 0; i < this.triangles.length; i += 3) {
             var p1 = this.points[this.triangles[i]],
@@ -133,7 +136,15 @@ Polygon.prototype.draw = function () {
             this.ctx.lineTo(p3.x, p3.y);
             this.ctx.closePath();
             this.ctx.stroke();
+
+            //assign random blue-ish colour
+            var randColParam = Math.floor((Math.random() * 70) + 80);
+            console.log(randColParam);
+            this.ctx.fillStyle = "rgb(" + randColParam + ", " + randColParam + ", 255)";
+            this.ctx.fill();
         }
+
+        this.ctx.restore();
     }
 
     // Draw lines between points
