@@ -1,6 +1,6 @@
 function writeMessage(canvas, message) {
     var context = canvas.getContext('2d');
-    // context.clearRect(0, 0, canvas.width, canvas.height);
+    //context.clearRect(0, 0, canvas.width, canvas.height);
     context.font = '18pt Helvetica Neue';
     context.fillStyle = 'black';
     context.fillText(message, 10, 25);
@@ -17,8 +17,8 @@ var polygon = new Polygon();
 var canvasMouseMove = function(evt) {
     var pos = getMousePos(canvas, evt);
     var message = 'Mouse position: ' + pos.x + ', ' + pos.y;
-    writeMessage(canvas, message);
-
+    //writeMessage(canvas, message);
+    
     var mouse = getMousePos(canvas, evt);
     polygon.drawWithMouse(mouse);
 };
