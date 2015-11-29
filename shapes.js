@@ -29,10 +29,10 @@ Polygon.prototype.pointInside = function(a, b, c, p) {
         px = this.points[p].x,
         py = this.points[p].y;
 
-    var aTot    = triangleArea(ax, ay, bx, by, cx, cy),
-        a1      = triangleArea(px, py, bx, by, cx, cy),
-        a2      = triangleArea(ax, ay, px, py, cx, cy),
-        a3      = triangleArea(ax, ay, bx, by, px, py);
+    var aTot = triangleArea(ax, ay, bx, by, cx, cy),
+        a1   = triangleArea(px, py, bx, by, cx, cy),
+        a2   = triangleArea(ax, ay, px, py, cx, cy),
+        a3   = triangleArea(ax, ay, bx, by, px, py);
 
     if (aTot == a1 + a2 + a3)
         return true;
@@ -115,20 +115,18 @@ Polygon.prototype.draw = function () {
     // Clear
     this.ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw Points
-    this.points.forEach(function(p) {
-        p.draw();
-    });
+    this.ctx.lineCap  = 'round';
+    this.ctx.lineJoin = 'round';
 
     // Draw triangles if the case
     if (this.state == POLYGON_FINISHED) {
-        this.ctx. strokeStyle = "blue";
+        this.ctx.strokeStyle = "blue";
 
         for (var i = 0; i < this.triangles.length; i += 3) {
             var p1 = this.points[this.triangles[i]],
                 p2 = this.points[this.triangles[i + 1]],
                 p3 = this.points[this.triangles[i + 2]];
-            
+
             this.ctx.beginPath();
             this.ctx.moveTo(p1.x, p1.y);
             this.ctx.lineTo(p2.x, p2.y);
@@ -139,29 +137,37 @@ Polygon.prototype.draw = function () {
     }
 
     // Draw lines between points
-    this.ctx.beginPath();
+    this.ctx.save();
     this.ctx.strokeStyle = 'black';
+    this.ctx.lineWidth = 3;
 
     var firstPoint = this.points[0];
+    this.ctx.beginPath();
     this.ctx.moveTo(firstPoint.x, firstPoint.y);
     for (var i = 1; i < this.points.length; i++) {
         this.ctx.lineTo(this.points[i].x, this.points[i].y);
     }
     if (this.state >= POLYGON_DRAWN) {
-        this.ctx.lineTo(firstPoint.x, firstPoint.y);
+        this.ctx.closePath();
     }
     this.ctx.stroke();
-    
+    this.ctx.restore();
+
     if (this.state == POLYGON_DRAWING && this.points.length >= 3) {
         var lastPoint = this.points[this.points.length - 1];
         this.ctx.setLineDash([5]);
         this.ctx.beginPath();
         this.ctx.strokeStyle = 'blue';
-        this.ctx.moveTo(firstPoint.x, firstPoint.y);
-        this.ctx.lineTo(lastPoint.x, lastPoint.y);
+        this.ctx.moveTo(lastPoint.x, lastPoint.y);
+        this.ctx.lineTo(firstPoint.x, firstPoint.y);
         this.ctx.stroke();
-        this.ctx.setLineDash([0]);
+        this.ctx.setLineDash([]);
     }
+
+    // Draw Points
+    this.points.forEach(function(p) {
+        p.draw();
+    });
 };
 
 Polygon.prototype.drawWithMouse = function(mouse) {
