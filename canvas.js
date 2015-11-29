@@ -26,7 +26,7 @@ Polygon.prototype.draw = function () {
         p.draw();
     });
 
-    // Draw lines betweens
+    // Draw lines between points
     this.ctx.beginPath();
     this.ctx.strokeStyle = 'black';
 
@@ -39,7 +39,7 @@ Polygon.prototype.draw = function () {
         this.ctx.lineTo(firstPoint.x, firstPoint.y);
     }
     this.ctx.stroke();
-
+    
     if (this.state == POLYGON_DRAWING && this.points.length >= 3) {
         var lastPoint = this.points[this.points.length - 1];
         this.ctx.setLineDash([5]);
@@ -48,7 +48,7 @@ Polygon.prototype.draw = function () {
         this.ctx.moveTo(firstPoint.x, firstPoint.y);
         this.ctx.lineTo(lastPoint.x, lastPoint.y);
         this.ctx.stroke();
-        this.ctx.setLineDash(0);
+        this.ctx.setLineDash([0]);
     }
 
 };
@@ -59,7 +59,7 @@ Polygon.prototype.drawWithMouse = function(mouse) {
     }
 
     this.draw();
-
+console.log("Drawing from draWithMouse"); //debug
     var lastPoint = this.points[this.points.length - 1];
     this.ctx.beginPath();
     this.ctx.strokeStyle = 'red';
