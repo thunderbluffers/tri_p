@@ -139,7 +139,6 @@ Polygon.prototype.draw = function () {
 
             //assign random blue-ish colour
             var randColParam = Math.floor((Math.random() * 70) + 80);
-            console.log(randColParam);
             this.ctx.fillStyle = "rgb(" + randColParam + ", " + randColParam + ", 255)";
             this.ctx.fill();
         }

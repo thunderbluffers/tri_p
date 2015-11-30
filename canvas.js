@@ -17,14 +17,14 @@ canvas.addEventListener('mousemove', canvasMouseMove, false);
 var canvasClick = function(evt) {
     var mouse = getMousePos(canvas, evt);
     polygon.add(mouse);
-    polygon.draw();
+    polygon.drawWithMouse(mouse);
 };
 canvas.addEventListener('click', canvasClick, false)
 
 document.onkeypress = function(e) {
     e = e || window.event;
     var charCode = (typeof e.which == 'number') ? e.which : e.keyCode;
-    if (String.fromCharCode(charCode) === ' ') {
+    if (String.fromCharCode(charCode) == ' ') {
         canvas.removeEventListener('mousemove', canvasMouseMove);
         canvas.removeEventListener('click', canvasClick);
         polygon.finishedDrawing();
