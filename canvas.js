@@ -33,3 +33,12 @@ document.onkeypress = function(e) {
         polygon.finishedDrawing();
     }
 };
+
+// Error handling
+function resetScene() {
+	context.clearRect(0, 0, canvas.width, canvas.height);
+
+	if (polygon) {
+		
+	}
+}

@@ -92,7 +92,8 @@ Polygon.prototype.triangulateEC = function() {
     else                            //trigonometric
         for (var i = 0; i < n; ++i) indexes.push(n - i - 1);
 
-    var v = n - 1;
+    var v = n - 1,
+        errCnt = n * n;
     while (n > 2) {
         //set indexes
         var u = v; //prev
@@ -101,6 +102,15 @@ Polygon.prototype.triangulateEC = function() {
         if (n <= v) v = 0;
         var w = v + 1; //next
         if (n <= w) w = 0;
+
+        if (errCnt-- <= 0) {
+            console.log("Triangulation error");
+            console.log("Remaining points: ", indexes);
+            //console.log("n: ", n);
+            //console.log("u v w: ", u, " " , v, " " , w);
+            //console.log("true: ", indexes[u], " " , indexes[v], " " , indexes[w]);
+            return;
+        }
 
         if (this.isEar(indexes[u], indexes[v], indexes[w]))
         {
@@ -115,6 +125,8 @@ Polygon.prototype.triangulateEC = function() {
             n--;
         }
     }
+
+    console.log("Triangulation success");
 }
 
 Polygon.prototype.finishedDrawing = function() {
