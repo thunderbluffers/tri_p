@@ -6,8 +6,12 @@ const EPS               = 0.0000000001;
 
 const COLOR_HIGHLIGHT   = "rgb(255, 255, 200)";
 
+function orientationTest(ax, ay, bx, by, cx, cy) {
+    return ax * (by - cy) + bx * (cy - ay) + cx * (ay - by);
+}
+
 function triangleArea(ax, ay, bx, by, cx, cy) {
-    return Math.abs(ax * (by - cy) + bx * (cy - ay) + cx * (ay - by)) / 2;
+    return Math.abs(orientationTest(ax, ay, bx, by, cx, cy)) / 2;
 };
 
 function randomBlueColorCode() {
@@ -48,28 +52,6 @@ Polygon.prototype.add = function(p) {
     this.points.push(p);
 };
 
-/*
-Polygon.prototype.pointInside = function(a, b, c, p) { //TODO: generalizare functie
-    var ax = this.points[a].x,
-        ay = this.points[a].y,
-        bx = this.points[b].x,
-        by = this.points[b].y,
-        cx = this.points[c].x,
-        cy = this.points[c].y,
-        px = p.x,
-        py = p.y;
-
-    var aTot = triangleArea(ax, ay, bx, by, cx, cy),
-        a1   = triangleArea(px, py, bx, by, cx, cy),
-        a2   = triangleArea(ax, ay, px, py, cx, cy),
-        a3   = triangleArea(ax, ay, bx, by, px, py);
-
-    if (aTot == a1 + a2 + a3)
-        return true;
-    else
-        return false;
-}*/
-
 Polygon.prototype.calculateArea = function() {
     var a = 0;
     for (var p = this.points.length - 1, q = 0; q < this.points.length; p = q++) {
@@ -86,7 +68,7 @@ Polygon.prototype.isEar = function(a, b, c) {
         cx = this.points[c].x,
         cy = this.points[c].y;
 
-    if (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by) < 0)
+    if (orientationTest(ax, ay, bx, by, cx, cy) < 0)
         return false;
 
     for (var i = 0; i < this.points.length; ++i)
@@ -131,25 +113,22 @@ Polygon.prototype.triangulateEC = function() {
             this.trianglesColors.push(randomBlueColorCode());
 
             n--;
-            
         }
     }
 }
 
 Polygon.prototype.finishedDrawing = function() {
     this.state = POLYGON_DRAWN;
-    this.draw();
+    this.drawContour();
     this.triangulateEC();
     this.state = POLYGON_FINISHED;
 
-    var dummyMouse = new Point(0, 0);
-    this.drawWithMouse(dummyMouse); //lucru in jur
+    var dummyMouse = new Point(-1, -1);
+    this.drawWithMouse(dummyMouse);
 }
 
-Polygon.prototype.draw = function () {
+Polygon.prototype.drawContour = function () {
     // Clear
-    this.ctx.clearRect(0, 0, canvas.width, canvas.height);
-
     this.ctx.lineCap  = 'round';
     this.ctx.lineJoin = 'round';
 
@@ -192,7 +171,8 @@ Polygon.prototype.drawWithMouse = function(mouse) {
         return;
     }
 
-    this.draw();
+    //clear context
+    this.ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw mouse point if still drawing
     if (this.state == POLYGON_DRAWING) {
@@ -223,7 +203,7 @@ Polygon.prototype.drawWithMouse = function(mouse) {
             this.ctx.closePath();
             this.ctx.stroke();
 
-            //assign random blue-ish colour
+            //check if mouse in triangle and highlight if the case
             if (pointInside(p1, p2, p3, mouse))
                 this.ctx.fillStyle = COLOR_HIGHLIGHT;
             else
@@ -233,6 +213,9 @@ Polygon.prototype.drawWithMouse = function(mouse) {
 
         this.ctx.restore();
     }
+
+    //draw contour over all other shapes
+    this.drawContour();
 };
 
 var Point = function(x, y) {
