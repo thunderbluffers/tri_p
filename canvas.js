@@ -8,6 +8,7 @@ var canvas = document.getElementById('myCanvas');
 var context = canvas.getContext('2d');
 var polygon = new Polygon();
 
+// Events
 var canvasMouseMove = function(evt) {
     var mouse = getMousePos(canvas, evt);
     polygon.drawWithMouse(mouse);
@@ -22,10 +23,12 @@ var canvasClick = function(evt) {
 canvas.addEventListener('click', canvasClick, false)
 
 document.onkeypress = function(e) {
+	if (polygon.state > POLYGON_DRAWING)
+		return;
     e = e || window.event;
     var charCode = (typeof e.which == 'number') ? e.which : e.keyCode;
     if (String.fromCharCode(charCode) == ' ') {
-        canvas.removeEventListener('mousemove', canvasMouseMove);
+        //canvas.removeEventListener('mousemove', canvasMouseMove);
         canvas.removeEventListener('click', canvasClick);
         polygon.finishedDrawing();
     }
