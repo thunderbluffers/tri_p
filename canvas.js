@@ -22,15 +22,18 @@ var canvasClick = function(evt) {
 };
 canvas.addEventListener('click', canvasClick, false)
 
+var userInputFinish = function (e) {
+    //canvas.removeEventListener('mousemove', canvasMouseMove);
+    canvas.removeEventListener('click', canvasClick);
+    polygon.finishedDrawing();
+}
 document.onkeypress = function(e) {
 	if (polygon.state > POLYGON_DRAWING)
 		return;
     e = e || window.event;
     var charCode = (typeof e.which == 'number') ? e.which : e.keyCode;
     if (String.fromCharCode(charCode) == ' ') {
-        //canvas.removeEventListener('mousemove', canvasMouseMove);
-        canvas.removeEventListener('click', canvasClick);
-        polygon.finishedDrawing();
+    	userInputFinish();
     }
 };
 
