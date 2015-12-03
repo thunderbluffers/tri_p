@@ -3,45 +3,39 @@ const POLYGON_DRAWN     = 1;
 const POLYGON_FINISHED  = 2;
 
 const EPS               = 0.0000000001;
+const COLOR_HIGHLIGHT   = 'rgb(220, 255, 200)';
 
-const COLOR_HIGHLIGHT   = "rgb(255, 255, 200)";
-
-function orientationTest(ax, ay, bx, by, cx, cy) {
-    return ax * (by - cy) + bx * (cy - ay) + cx * (ay - by);
+var detPoints = function(a, b, c) {
+    return (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x);
 }
 
-function triangleArea(ax, ay, bx, by, cx, cy) {
-    return Math.abs(orientationTest(ax, ay, bx, by, cx, cy)) / 2;
+var orientationTest = function(a, b, c) {
+    var d = detPoints(a, b, c);
+
+    return d > 0 ? 1 : d < 0 ? -1 : 0;
+}
+
+var triangleArea = function(a, b, c) {
+    return Math.abs(detPoints(a, b, c)) / 2;
 };
 
-function randomBlueColorCode() {
+var randomBlueColorCode = function() {
     var randColParam = Math.floor((Math.random() * 70) + 80);
     return ("rgb(" + randColParam + ", " + randColParam + ", 255)");
 }
 
-function pointInside(a, b, c, p) {
-    var ax = a.x,
-        ay = a.y,
-        bx = b.x,
-        by = b.y,
-        cx = c.x,
-        cy = c.y,
-        px = p.x,
-        py = p.y;
+var isPointInside = function(a, b, c, p) {
+    var aTot = triangleArea(a, b, c);
+    var a1   = triangleArea(p, b, c);
+    var a2   = triangleArea(a, p, c);
+    var a3   = triangleArea(a, b, p);
 
-    var aTot = triangleArea(ax, ay, bx, by, cx, cy),
-        a1   = triangleArea(px, py, bx, by, cx, cy),
-        a2   = triangleArea(ax, ay, px, py, cx, cy),
-        a3   = triangleArea(ax, ay, bx, by, px, py);
-
-    if (aTot == a1 + a2 + a3)
-        return true;
-    else
-        return false;
+    return aTot == a1 + a2 + a3;
 }
 
 var Polygon = function() {
     this.points = [];
+    this.specialPoints = [];
     this.state = POLYGON_DRAWING;
     this.ctx = canvas.getContext('2d');
     this.triangles = [];
@@ -61,35 +55,28 @@ Polygon.prototype.calculateArea = function() {
 }
 
 Polygon.prototype.isEar = function(a, b, c) {
-    var ax = this.points[a].x,
-        ay = this.points[a].y,
-        bx = this.points[b].x,
-        by = this.points[b].y,
-        cx = this.points[c].x,
-        cy = this.points[c].y;
-
-    if (orientationTest(ax, ay, bx, by, cx, cy) < 0)
+    if (orientationTest(a, b, c) < 0) {
         return false;
+    }
 
-    for (var i = 0; i < this.points.length; ++i)
-    {
-        if (i == a || i == b || i == c) continue;
-        if (pointInside(this.points[a], this.points[b], this.points[c], this.points[i]))
+    for (var x of this.points) {
+        if (a.eq(x) || b.eq(x) || c.eq(x)) continue;
+        if (isPointInside(a, b, c, x)) {
             return false;
+        }
     }
 
     return true;
 }
 
 Polygon.prototype.triangulateEC = function() {
-
     var indexes = [],
         n = this.points.length;
 
     //make it trigonometric
-    if (this.calculateArea() > 0)   //invers-trigonometric
+    if (this.calculateArea() > 0)   // invers-trigonometric
         for (var i = 0; i < n; ++i) indexes.push(i);
-    else                            //trigonometric
+    else                            // trigonometric
         for (var i = 0; i < n; ++i) indexes.push(n - i - 1);
 
     var v = n - 1,
@@ -104,45 +91,65 @@ Polygon.prototype.triangulateEC = function() {
         if (n <= w) w = 0;
 
         if (errCnt-- <= 0) {
-            console.log("Triangulation error");
-            console.log("Remaining points: ", indexes);
+            log('Triangulation error');
+            log('Remaining points:', indexes.join(', '));
             //console.log("n: ", n);
             //console.log("u v w: ", u, " " , v, " " , w);
             //console.log("true: ", indexes[u], " " , indexes[v], " " , indexes[w]);
             return;
         }
 
-        if (this.isEar(indexes[u], indexes[v], indexes[w]))
-        {
-            console.log("Removing", indexes[v]);
+        if (this.isEar(
+            this.points[indexes[u]],
+            this.points[indexes[v]],
+            this.points[indexes[w]]
+        )) {
+            console.log('Removing', indexes[v]);
             this.triangles.push(indexes[u]);
             this.triangles.push(indexes[v]);
             this.triangles.push(indexes[w]);
             indexes.splice(v, 1);
 
             this.trianglesColors.push(randomBlueColorCode());
-
             n--;
         }
     }
 
-    console.log("Triangulation success");
-}
+    log('Triangulation success');
+};
+
+Polygon.prototype.highlightPoint = function(x) {
+    this.specialPoints.push(x);
+    for (var i = 0; i < this.triangles.length; i += 3) {
+        var p1 = this.points[this.triangles[i]],
+            p2 = this.points[this.triangles[i + 1]],
+            p3 = this.points[this.triangles[i + 2]];
+
+        if (isPointInside(p1, p2, p3, x)) {
+            this.trianglesColors[i / 3] = COLOR_HIGHLIGHT;
+            log('Found X inside a triangle');
+            this.draw();
+
+            return;
+        }
+    }
+
+    log('Found X outside the polygon');
+};
 
 Polygon.prototype.finishedDrawing = function() {
     this.state = POLYGON_DRAWN;
-    this.drawContour();
+    this.draw();
     this.triangulateEC();
+
     this.state = POLYGON_FINISHED;
+    this.draw();
+};
 
-    var dummyMouse = new Point(-1, -1);
-    this.drawWithMouse(dummyMouse);
-}
-
-Polygon.prototype.drawContour = function () {
-    // Clear
-    this.ctx.lineCap  = 'round';
-    this.ctx.lineJoin = 'round';
+Polygon.prototype._drawEdges = function () {
+    if (this.points.length == 0) {
+        return;
+    }
 
     // Draw lines between points
     this.ctx.save();
@@ -171,35 +178,12 @@ Polygon.prototype.drawContour = function () {
         this.ctx.stroke();
         this.ctx.setLineDash([]);
     }
-
-    // Draw Points
-    this.points.forEach(function(p) {
-        p.draw();
-    });
 };
 
-Polygon.prototype.drawWithMouse = function(mouse) {
-    if (this.points.length == 0) {
-        return;
-    }
-
-    //clear context
-    this.ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Draw mouse point if still drawing
-    if (this.state == POLYGON_DRAWING) {
-        var lastPoint = this.points[this.points.length - 1];
-        this.ctx.beginPath();
-        this.ctx.strokeStyle = 'red';
-        this.ctx.moveTo(lastPoint.x, lastPoint.y);
-        this.ctx.lineTo(mouse.x, mouse.y);
-        this.ctx.stroke();
-
-        mouse.draw();
-    }
-    else if (this.state >= POLYGON_DRAWN) {
+Polygon.prototype._drawTriangles = function() {
+    if (this.state == POLYGON_FINISHED) {
         this.ctx.save();
-        this.ctx.strokeStyle = "black";
+        this.ctx.strokeStyle = 'black';
         this.ctx.lineWidth = 2;
         this.ctx.setLineDash([]);
 
@@ -215,30 +199,55 @@ Polygon.prototype.drawWithMouse = function(mouse) {
             this.ctx.closePath();
             this.ctx.stroke();
 
-            //check if mouse in triangle and highlight if the case
-            if (pointInside(p1, p2, p3, mouse))
-                this.ctx.fillStyle = COLOR_HIGHLIGHT;
-            else
-                this.ctx.fillStyle = this.trianglesColors[i / 3];
+            this.ctx.fillStyle = this.trianglesColors[i / 3];
             this.ctx.fill();
         }
 
         this.ctx.restore();
     }
-
-    //draw contour over all other shapes
-    this.drawContour();
 };
 
-var Point = function(x, y) {
-    this.x = x;
-    this.y = y;
-    this.ctx = canvas.getContext('2d');
+Polygon.prototype._drawPoints = function() {
+    // Draw Points
+    for (var x of this.points) {
+        x.draw();
+    }
+
+    if (this.state == POLYGON_FINISHED) {
+        for (var x of this.specialPoints) {
+            x.drawSpecial();
+        }
+    }
 };
 
-Point.prototype.draw = function() {
-    this.ctx.beginPath();
-    this.ctx.arc(this.x, this.y, 3, 0, 2 * Math.PI);
-    this.ctx.fillStyle = 'black';
-    this.ctx.fill();
-}
+Polygon.prototype.draw = function() {
+    //clear context
+    this.ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    this.ctx.lineCap  = 'round';
+    this.ctx.lineJoin = 'round';
+
+    this._drawTriangles();
+    this._drawEdges();
+    this._drawPoints();
+};
+
+Polygon.prototype.drawWithMouse = function(mouse) {
+    this.draw();
+
+    // Draw mouse point if still drawing
+    if (this.state == POLYGON_DRAWING) {
+        if (this.points.length > 0) {
+            var lastPoint = this.points[this.points.length - 1];
+            this.ctx.beginPath();
+            this.ctx.strokeStyle = 'red';
+            this.ctx.moveTo(lastPoint.x, lastPoint.y);
+            this.ctx.lineTo(mouse.x, mouse.y);
+            this.ctx.stroke();
+        }
+
+        mouse.draw();
+    } else if (this.state == POLYGON_FINISHED) {
+        mouse.drawSpecial();
+    }
+};

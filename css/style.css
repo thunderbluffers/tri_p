@@ -1,0 +1,24 @@
+body {
+    background: black;
+}
+
+#bible {
+    background: white;
+    float: left;
+    padding: 2px;
+}
+
+#log {
+    background: white;
+    float: left;
+    height: 800px;
+    width: 300px;
+    padding: 2px 4px;
+    border-left: 1px solid black;
+}
+
+#finish {
+    font-size: 20px;
+    padding: 4px;
+    border-radius: 8px;
+}
